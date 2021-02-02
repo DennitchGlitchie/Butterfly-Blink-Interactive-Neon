@@ -3,6 +3,8 @@
 #include <avr/cpufunc.h>
 #include <string.h>
 
+#include <stdlib.h>
+
 
 #define F_CPU_david 16000000
 #define BAUD 9600
@@ -15,32 +17,10 @@ volatile char serialBuffer[TX_BUFFER_SIZE];		// Added volatile here bc I saw it 
 volatile uint8_t serialReadPos = 0; // global variables don't need to be set to 0
 volatile uint8_t serialWritePos = 0;
 
-uint16_t timerFrequencyGlobal = 65000; // I think i need to make this volatile 
+volatile uint16_t timerFrequencyGlobal = 65000; // I think i need to make this volatile 
 
 uint8_t adc_read();
 void serialWrite(char c[]);
-
-void itoa(int n, char *s) //avr stdlib.h gives itoa
-{
-	int i, sign;
-	if ((sign = n) < 0)
-		n = -n;
-	i=0;
-	do {
-		s[i++] = n % 10 + '0';
-	} while ((n /= 10) > 0);
-	if (sign < 0)
-		s[i++] = '-';
-	//s[i] = '\0';
-
-	//char temp[4];
-	//temp[3] = s[0];
-	//temp[2] = s[1];
-	//temp[1] = s[2];
-	//temp[0] = s[3];
-
-	//*s = temp; //can't assign four things at the same time 
-}
 
 void port_init()
 {
@@ -142,7 +122,18 @@ void blink_speak()
 	//uint8_t my_int = 128; //adc_read();
 	//itoa(my_int,my_char_2,size);
 	
-	serialWrite(my_char);
+	//uint8_t my_int = 128;
+	//char my_char [13];
+	//itoa(my_int,my_char,10;
+	uint8_t a=adc_read();
+	char buffer[20];
+	itoa(a,buffer,10);
+	serialWrite(buffer);
+	serialWrite("\n");
+	//serialWrite('\0');
+	
+	
+
 	//serialWrite("\n");
 	//UDR0 = '\n';
 	//char *my_char = "\n";i
@@ -172,7 +163,7 @@ uint8_t linearize(uint8_t value)
 
 void blink_adc()
 {
-	PORTB ^= (1 << 5);
+	//PORTB ^= (1 << 5);:
 		
 	ADCSRA = ADCSRA | (1 << ADSC);
 	while(ADCSRA & (1 << ADSC));
@@ -229,8 +220,13 @@ void main (void)
 	ADC_init();
 	UART_init();	
 	//timer1_init();
+	uint8_t temp;
 	while(1)
 	{
+		//blink_speak();
+		//temp = adc_read();
+		
+		//timerFrequencyGlobal = temp*250;
 		blink_speak();
 	}	
 }
