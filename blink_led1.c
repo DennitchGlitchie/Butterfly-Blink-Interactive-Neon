@@ -161,43 +161,6 @@ uint8_t linearize(uint8_t value)
 	return value;
 }
 
-void blink_adc()
-{
-	//PORTB ^= (1 << 5);:
-		
-	ADCSRA = ADCSRA | (1 << ADSC);
-	while(ADCSRA & (1 << ADSC));
-
-	
-for (int i=0; i < (256 - linearize(ADCH)); i++)
-	{	
-		for (int j=0; j < 12500; j++)
-		{
-			_NOP();
-		}
- 	}
-}
-
-void adc_read_threshold()
-{
-	uint8_t	TRIGPOINT = 128;
-	ADCSRA = ADCSRA | (1 << ADSC);
-		
-	// Wait until the ADSC bit has been cleared
-	while(ADCSRA & (1 << ADSC));
-
-	if(ADCH < TRIGPOINT)
-	{
-		// Turn LED on
-		PORTB = PORTB | (1 << 5);
-	}
-	else
-	{
-		// Turn LED off
-		PORTB = PORTB & ~(1 << 5);
-	}
-}
-
 uint8_t adc_read()
 {
 	ADCSRA = ADCSRA | (1 << ADSC);		// Start and ADC conversion by setting ADSC bit (bit 6)
@@ -205,13 +168,10 @@ uint8_t adc_read()
 	return ADCH;
 }
 
-void timer_set(uint8_t setpoint)
+uint16_t map(uint8_t adc_reading)
 {
-	OCR1A = setpoint << 6;
-	if (TCNT1 > OCR1A)
-	{
-		TCNT1 = 0;	
-	}
+	adc_reading = 256 - adc_reading;
+	return adc_reading*50;
 }
 
 void main (void) 
@@ -219,15 +179,20 @@ void main (void)
 	port_init(); 
 	ADC_init();
 	UART_init();	
-	//timer1_init();
-	uint8_t temp;
+	timer1_init();
+	uint8_t my_reading;
 	while(1)
 	{
 		//blink_speak();
-		//temp = adc_read();
+		my_reading = adc_read();
 		
+		OCR1A = map(my_reading);
+		if (TCNT1 > OCR1A)
+		{
+			TCNT1 = OCR1A - 1;	
+		}
 		//timerFrequencyGlobal = temp*250;
-		blink_speak();
+		//blink_speak();
 	}	
 }
 
