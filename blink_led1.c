@@ -17,7 +17,8 @@ volatile char serialBuffer[TX_BUFFER_SIZE];		// Added volatile here bc I saw it 
 volatile uint8_t serialReadPos = 0; // global variables don't need to be set to 0
 volatile uint8_t serialWritePos = 0;
 
-volatile uint16_t timerFrequencyGlobal = 65000; // I think i need to make this volatile 
+volatile uint16_t timerFrequencyGlobal = 65000; // I think i need to make this volatile
+
 
 uint8_t adc_read();
 void serialWrite(char c[]);
@@ -106,7 +107,7 @@ ISR(USART_TX_vect)
 ISR(TIMER1_COMPA_vect)
 {
 	PORTB ^= (1 << 5);
-	OCR1A = timerFrequencyGlobal; 
+	//OCR1A = timerFrequencyGlobal; 
 }
 
 void blink_speak()
@@ -138,6 +139,24 @@ void blink_speak()
 	//UDR0 = '\n';
 	//char *my_char = "\n";i
 	//using double quotes gives you a string and that will be null terminated single quotes gives a character 
+}
+
+void wait()
+{
+	for (int32_t i=0; i< 1000000; i++)
+	{
+		_NOP();
+	}
+}
+
+
+void UART_num(uint8_t my_int)
+{
+	//char buffer[20];
+	//itoa(my_int,buffer,20);
+	serialWrite("hello");
+	//serialWrite(buffer);
+	serialWrite("\n");
 }
 
 void blink()
@@ -183,14 +202,16 @@ void main (void)
 	uint8_t my_reading;
 	while(1)
 	{
-		//blink_speak();
+	//	blink_speak();
+		wait();
 		my_reading = adc_read();
+		UART_num(123);
 		
-		OCR1A = map(my_reading);
-		if (TCNT1 > OCR1A)
-		{
-			TCNT1 = OCR1A - 1;	
-		}
+		//OCR1A = map(my_reading);
+		//if (TCNT1 > OCR1A)
+		//{
+		//	TCNT1 = OCR1A - 1;	
+		//}
 		//timerFrequencyGlobal = temp*250;
 		//blink_speak();
 	}	
